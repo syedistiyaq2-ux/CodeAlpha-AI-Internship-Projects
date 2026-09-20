@@ -2,6 +2,19 @@ import tkinter as tk
 from tkinter import messagebox
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+import nltk
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+
+
+def preprocess_text(text):
+    words = word_tokenize(text.lower())
+    stop_words = set(stopwords.words("english"))
+    words = [
+        word for word in words
+        if word.isalnum() and word not in stop_words
+    ]
+    return " ".join(words)
 
 
 faqs = [
@@ -25,7 +38,7 @@ faqs = [
 ]
 
 
-questions = [item[0] for item in faqs]
+questions = [preprocess_text(item[0]) for item in faqs]
 answers = [item[1] for item in faqs]
 
 vectorizer = TfidfVectorizer()
@@ -39,7 +52,9 @@ def get_answer():
         messagebox.showwarning("Warning", "Please enter a question.")
         return
 
+    user_question = preprocess_text(user_question)
     user_vector = vectorizer.transform([user_question])
+
     similarity = cosine_similarity(user_vector, question_vectors)
 
     best_match = similarity.argmax()
